@@ -9,11 +9,15 @@ import {
 } from 'react-native';
 import Colors from '../utils/Colors';
 import ProductModal from './ProductModal';
+import {useSelector, useDispatch} from 'react-redux';
+import {addMaterial, decrementMaterialQuantity, incrementMaterialQuantity} from '../utils/slices/ProductSlice';
 
 const ProductListing = () => {
   const [productData, setProductData] = useState<any>([]);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalDetails, setModalDetails] = useState<any>();
+  const dispatch = useDispatch();
+  const products = useSelector((state: any) => state.product.materials);
 
   useEffect(() => {
     fetchProductData();
@@ -27,11 +31,16 @@ const ProductListing = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response, 'response');
+      // console.log(response, 'response');
       if (response.status == 200) {
         const data = await response.json();
-        console.log(data, 'dataCheck');
-        setProductData(data);
+        // console.log(data, 'dataCheck');
+        const modifiedData = data.map((item: any) => ({
+          ...item,
+          quantity: 0,
+        }));        
+        dispatch(addMaterial(modifiedData));
+        // setProductData(data);
       } else {
         console.log('api failed with status code ', response.status);
       }
@@ -39,13 +48,23 @@ const ProductListing = () => {
       console.log(error, 'errrorInfetchProductData');
     }
   };
+  console.log(products[0], 'quantityCheck');
 
   const handleItemPress = (item: any) => {
-    const prodObj = {description: item.description, image: item.image};
+    const prodObj = {id:item.id,description: item.description, image: item.image};
     setModalDetails(prodObj);
     setShowModal(true);
   };
-  const products = ({item, index}: {item: any; index: any}) => {
+
+  const handleDecrement = (item:any)=>{
+    dispatch(decrementMaterialQuantity(item))
+  }
+
+  const handleIncrement = (item:any)=>{
+    dispatch(incrementMaterialQuantity(item))
+  }
+
+  const renderProducts = ({item, index}: {item: any; index: any}) => {
     const totalStars = 5;
     return (
       <TouchableOpacity onPress={() => handleItemPress(item)}>
@@ -56,43 +75,45 @@ const ProductListing = () => {
               style={styles.image}
               resizeMode="contain"
             />
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 10,
-              }}>
-              <TouchableOpacity style={styles.circleBtn}>
-                <Image
-                  source={require('../assets/images/Minus.png')}
-                  style={{width: 25, height: 25}}
-                />
-              </TouchableOpacity>
+            {item.quantity > 0 && (
               <View
                 style={{
-                  backgroundColor: Colors.grey,
-                  borderRadius: 2,
-                  marginHorizontal: 2,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 10,
                 }}>
-                <Text
+                <TouchableOpacity style={styles.circleBtn} onPress={()=>handleDecrement(item)}>
+                  <Image
+                    source={require('../assets/images/Minus.png')}
+                    style={{width: 25, height: 25}}
+                  />
+                </TouchableOpacity>
+                <View
                   style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-                    marginHorizontal: 10,
-                    color: Colors.black,
-                    paddingVertical: 2,
+                    backgroundColor: Colors.grey,
+                    borderRadius: 2,
+                    marginHorizontal: 2,
                   }}>
-                  100
-                </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      marginHorizontal: 10,
+                      color: Colors.black,
+                      paddingVertical: 2,
+                    }}>
+                    {item.quantity.toString()}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.circleBtn} onPress={()=>handleIncrement(item)}>
+                  <Image
+                    source={require('../assets/images/Plus.png')}
+                    style={{width: 25, height: 25}}
+                  />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.circleBtn}>
-                <Image
-                  source={require('../assets/images/Plus.png')}
-                  style={{width: 25, height: 25}}
-                />
-              </TouchableOpacity>
-            </View>
+            )}
           </View>
           <View>
             <View style={styles.titleBox}>
@@ -131,11 +152,12 @@ const ProductListing = () => {
       </TouchableOpacity>
     );
   };
+
   return (
     <View style={{padding: 16}}>
       <FlatList
-        data={productData}
-        renderItem={products}
+        data={products}
+        renderItem={renderProducts}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item, index) => index.toString()}
       />

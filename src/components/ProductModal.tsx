@@ -8,6 +8,8 @@ import {
   View,
 } from 'react-native';
 import Colors from '../utils/Colors';
+import { useDispatch, useSelector } from 'react-redux';
+import { incrementMaterialQuantity } from '../utils/slices/ProductSlice';
 
 const ProductModal = ({
   prodObj,
@@ -16,13 +18,19 @@ const ProductModal = ({
   prodObj: any;
   setShowModal: any;
 }) => {
+
+  const dispatch = useDispatch();
+  const products = useSelector((state: any) => state.product.materials);
+  
   const handleClosePress = () => {
     setShowModal(false);
   };
 
   const handleAddToCart = ()=>{
-    
+    dispatch(incrementMaterialQuantity(prodObj))
+    setShowModal(false)
   }
+
   return (
     <Modal transparent>
       <View style={styles.modalBackground}>
