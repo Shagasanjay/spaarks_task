@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +16,7 @@ import {
   decrementMaterialQuantity,
   incrementMaterialQuantity,
 } from '../utils/slices/ProductSlice';
+import BASE_URL from '../utils/Constants';
 
 const ProductListing = () => {
   const [loader, setLoader] = useState<boolean>(true);
@@ -32,8 +33,7 @@ const ProductListing = () => {
   const fetchProductData = async () => {
     try {
       setLoader(true);
-      const baseUrl = 'https://fakestoreapi.com/products';
-      const response = await fetch(baseUrl, {
+      const response = await fetch(BASE_URL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -90,13 +90,7 @@ const ProductListing = () => {
               resizeMode="contain"
             />
             {item.quantity > 0 && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: 10,
-                }}>
+              <View style={styles.quantityBox}>
                 <TouchableOpacity
                   style={styles.circleBtn}
                   onPress={() => handleDecrement(item)}>
@@ -105,12 +99,7 @@ const ProductListing = () => {
                     style={{width: 25, height: 25}}
                   />
                 </TouchableOpacity>
-                <View
-                  style={{
-                    backgroundColor: Colors.grey,
-                    borderRadius: 2,
-                    marginHorizontal: 2,
-                  }}>
+                <View style={styles.countBox}>
                   <Text
                     style={{
                       fontSize: 16,
@@ -184,12 +173,14 @@ const ProductListing = () => {
             Fetching Products....
           </Text>
         </View>
-      ) : showErrorState ?(
-        <View  style={styles.errorState}>
-          
-          <Image  source={require('../assets/images/ErrorState.png') }   resizeMode='contain'/>
-          </View>
-      ): (
+      ) : showErrorState ? (
+        <View style={styles.errorState}>
+          <Image
+            source={require('../assets/images/ErrorState.png')}
+            resizeMode="contain"
+          />
+        </View>
+      ) : (
         <FlatList
           data={products}
           renderItem={renderProducts}
@@ -236,8 +227,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
   },
-  errorState:
-   {justifyContent:'center',alignItems:'center' ,height:'92%' },
+  errorState: {justifyContent: 'center', alignItems: 'center', height: '92%'},
+  quantityBox: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  countBox: {
+    backgroundColor: Colors.grey,
+    borderRadius: 2,
+    marginHorizontal: 2,
+  },
 });
 
 export default ProductListing;
